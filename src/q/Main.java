@@ -17,6 +17,12 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.Security;
 import java.security.spec.KeySpec;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 public class Main {
 
@@ -63,11 +69,12 @@ public class Main {
         return new String(encoded, encoding);
     }
 
-    public static void extract(String inFileName, String outFileName, String mPassword) throws IOException, Base64DecodingException {
+    public static int extract(String inFileName, String outFileName, String mPassword) throws IOException, Base64DecodingException {
         final File f = new File(inFileName);
         final FileInputStream fis = new FileInputStream(f);
         final FileOutputStream fos = new FileOutputStream(new File(outFileName));
-        Extract.extract(fis, (int) f.length(), fos, mPassword);
+        Extract e = new Extract();
+        e.extract(fis, (int) f.length(), fos, mPassword);
 
         String mMessage = readFile(outFileName, Charset.defaultCharset());
         // System.out.println("message is " + mMessage);
@@ -90,6 +97,7 @@ public class Main {
                 System.out.println("==============================");
                 System.out.println(mMessage);
                 System.out.println("==============================");
+                return 1;
             } else {
                 // Wrong password
                 System.out.println("decryption error with password " + mPassword);
@@ -97,14 +105,44 @@ public class Main {
         } else {
             System.out.println("wrong password " + mPassword);
         }
+        return 0;
     }
 
-    public static void main(String[] args) throws IOException, Base64DecodingException {
+    public static void main(String[] args) throws IOException, Base64DecodingException, InterruptedException, ExecutionException {
         Security.addProvider(new BouncyCastleProvider());
+        final int numThread = 32;
+        ExecutorService executorService = Executors.newFixedThreadPool(numThread);
+        int i = 0;
         try (BufferedReader br = new BufferedReader(new FileReader(args[1]))) {
             String line;
+            List<Future<Integer>> results = new ArrayList<>(numThread);
+
             while ((line = br.readLine()) != null) {
-                extract(args[0], "tmp.txt", line);
+                final String finalLine = line;
+                int finalI = ++i % numThread;
+                results.add(
+                        executorService.submit(() -> {
+                            try {
+                                return extract(args[0], "tmp" + finalI + ".txt", finalLine);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            } catch (Base64DecodingException e) {
+                                e.printStackTrace();
+                            }
+                            return 0;
+                        })
+                );
+
+                if (results.size() >= numThread) {
+                    for (int k = 0; k < results.size(); k++) {
+                        Future<Integer> res = results.get(k);
+                        if (res.get() == 1) {
+                            System.exit(0);
+                        }
+                    }
+                    results.clear();
+                }
+
             }
         }
     }

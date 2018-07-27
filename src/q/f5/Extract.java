@@ -8,28 +8,28 @@ import java.io.*;
 
 
 public class Extract {
-    private static File f; // carrier file
+    private File f; // carrier file
 
-    private static byte[] carrier; // carrier data
+    private byte[] carrier; // carrier data
 
-    private static int[] coeff; // dct values
+    private int[] coeff; // dct values
 
-    private static FileOutputStream fos; // embedded file (output file)
+    private FileOutputStream fos; // embedded file (output file)
 
-    private static String embFileName; // output file name
+    private String embFileName; // output file name
 
-    private static String password;
+    private String password;
 
-    private static byte[] deZigZag = {
+    private byte[] deZigZag = {
             0, 1, 5, 6, 14, 15, 27, 28, 2, 4, 7, 13, 16, 26, 29, 42, 3, 8, 12, 17, 25, 30, 41, 43, 9, 11, 18, 24, 31,
             40, 44, 53, 10, 19, 23, 32, 39, 45, 52, 54, 20, 22, 33, 38, 46, 51, 55, 60, 21, 34, 37, 47, 50, 56, 59, 61,
             35, 36, 48, 49, 57, 58, 62, 63 };
 
-    private static String extractF5Seed(String from_password) {
+    private String extractF5Seed(String from_password) {
         return from_password.substring((from_password.length()/3)*2);
     }
 
-    public static void extract(final InputStream fis, final int flength, final OutputStream fos, final String password)
+    public void extract(final InputStream fis, final int flength, final OutputStream fos, final String password)
             throws IOException {
         carrier = new byte[flength];
         fis.read(carrier);
@@ -160,54 +160,5 @@ public class Extract {
 //            System.out.println("Incomplete file: only " + nBytesExtracted + " of " + extractedFileLength
 //                    + " bytes extracted");
         }
-    }
-
-    public static void main(final String[] args) {
-        embFileName = "output.txt";
-        password = "abc123";
-        try {
-            if (args.length < 1) {
-                usage();
-                return;
-            }
-            for (int i = 0; i < args.length; i++) {
-                if (!args[i].startsWith("-")) {
-                    if (!args[i].endsWith(".jpg")) {
-                        usage();
-                        return;
-                    }
-                    f = new File(args[i]);
-                    continue;
-                }
-                if (args.length < i + 1) {
-                    System.out.println("Missing parameter for switch " + args[i]);
-                    usage();
-                    return;
-                }
-                if (args[i].equals("-e")) {
-                    embFileName = args[i + 1];
-                } else if (args[i].equals("-p")) {
-                    password = args[i + 1];
-                } else {
-                    System.out.println("Unknown switch " + args[i] + " ignored.");
-                }
-                i++;
-            }
-
-            final FileInputStream fis = new FileInputStream(f);
-            fos = new FileOutputStream(new File(embFileName));
-            extract(fis, (int) f.length(), fos, password);
-
-        } catch (final Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    static void usage() {
-        System.out.println("java Extract [Options] \"image.jpg\"");
-        System.out.println("Options:");
-        System.out.println("\t-p password (default: abc123)");
-        System.out.println("\t-e extractedFileName (default: output.txt)");
-        System.out.println("\nAuthor: Andreas Westfeld, westfeld@inf.tu-dresden.de");
     }
 }
