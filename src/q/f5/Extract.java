@@ -8,36 +8,16 @@ import java.io.*;
 
 
 public class Extract {
-    private File f; // carrier file
-
-    private byte[] carrier; // carrier data
-
-    private int[] coeff; // dct values
-
-    private FileOutputStream fos; // embedded file (output file)
-
-    private String embFileName; // output file name
-
-    private String password;
 
     private byte[] deZigZag = {
             0, 1, 5, 6, 14, 15, 27, 28, 2, 4, 7, 13, 16, 26, 29, 42, 3, 8, 12, 17, 25, 30, 41, 43, 9, 11, 18, 24, 31,
             40, 44, 53, 10, 19, 23, 32, 39, 45, 52, 54, 20, 22, 33, 38, 46, 51, 55, 60, 21, 34, 37, 47, 50, 56, 59, 61,
             35, 36, 48, 49, 57, 58, 62, 63 };
 
-    private String extractF5Seed(String from_password) {
-        return from_password.substring((from_password.length()/3)*2);
-    }
-
-    public void extract(final InputStream fis, final int flength, final OutputStream fos, final String password)
+    public void extract(int[] coeff, final OutputStream fos, final String password)
             throws IOException {
-        carrier = new byte[flength];
-        fis.read(carrier);
-        final HuffmanDecode hd = new HuffmanDecode(carrier);
-//        System.out.println("Huffman decoding starts");
-        coeff = hd.decode();
 //        System.out.println("Permutation starts");
-        final F5Random random = new F5Random(extractF5Seed(password).getBytes());
+        final F5Random random = new F5Random(password.getBytes());
 //        final F5Random random = new F5Random(password.getBytes());
         final Permutation permutation = new Permutation(coeff.length, random);
 //        System.out.println(coeff.length + " indices shuffled");

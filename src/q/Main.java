@@ -4,6 +4,7 @@ import com.sun.org.apache.xml.internal.security.exceptions.Base64DecodingExcepti
 import com.sun.org.apache.xml.internal.security.utils.Base64;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import q.f5.Extract;
+import q.f5.ortega.HuffmanDecode;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
@@ -62,21 +63,11 @@ public class Main {
         public final static String PASSWORD_SENTINEL = "----* PK v 1.0 REQUIRES PASSWORD ----*";
     }
 
-    static String readFile(String path, Charset encoding)
-            throws IOException
-    {
-        byte[] encoded = Files.readAllBytes(Paths.get(path));
-        return new String(encoded, encoding);
-    }
-
-    public static int extract(String inFileName, String outFileName, String mPassword) throws IOException, Base64DecodingException {
-        final File f = new File(inFileName);
-        final FileInputStream fis = new FileInputStream(f);
-        final FileOutputStream fos = new FileOutputStream(new File(outFileName));
+    public static int extract(int[] coeff, String mPassword) throws IOException, Base64DecodingException {
         Extract e = new Extract();
-        e.extract(fis, (int) f.length(), fos, mPassword);
-
-        String mMessage = readFile(outFileName, Charset.defaultCharset());
+        OutputStream ostream = new ByteArrayOutputStream();
+        e.extract(coeff, ostream, extractF5Seed(mPassword));
+        String mMessage = ostream.toString();
         // System.out.println("message is " + mMessage);
 
         if (mMessage != null && mMessage.indexOf(Constants.PASSWORD_SENTINEL) == 0) {
@@ -108,25 +99,31 @@ public class Main {
         return 0;
     }
 
-    public static void main(String[] args) throws IOException, Base64DecodingException, InterruptedException, ExecutionException {
+    public static void main(String[] args) throws IOException, InterruptedException, ExecutionException {
         Security.addProvider(new BouncyCastleProvider());
         final int numThread = 32;
         ExecutorService executorService = Executors.newFixedThreadPool(numThread);
-        int i = 0;
+
+        final File f = new File(args[0]);
+        final FileInputStream fis = new FileInputStream(f);
+        byte[] carrier; // carrier data
+        carrier = new byte[(int) f.length()];
+        fis.read(carrier);
+        final HuffmanDecode hd = new HuffmanDecode(carrier);
+        System.out.println("Huffman decoding starts");
+        final int[] coeff = hd.decode(); // dct values
+
         try (BufferedReader br = new BufferedReader(new FileReader(args[1]))) {
             String line;
             List<Future<Integer>> results = new ArrayList<>(numThread);
 
             while ((line = br.readLine()) != null) {
                 final String finalLine = line;
-                int finalI = ++i % numThread;
                 results.add(
                         executorService.submit(() -> {
                             try {
-                                return extract(args[0], "tmp" + finalI + ".txt", finalLine);
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            } catch (Base64DecodingException e) {
+                                return extract(coeff, finalLine);
+                            } catch (Exception e) {
                                 e.printStackTrace();
                             }
                             return 0;
