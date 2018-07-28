@@ -55,8 +55,8 @@ public class Extract {
         k %= 32;
         final int n = (1 << k) - 1;
         extractedFileLength &= 0x007fffff;
-//        System.out.println("Length of embedded file: " + extractedFileLength + " bytes");
         availableExtractedBits = 0;
+        int extractedByteOffset = 0;
         if (n > 0) {
             int startOfN = i;
             int hash;
@@ -95,6 +95,15 @@ public class Extract {
                     if (availableExtractedBits == 8) {
                         // remove pseudo random pad
                         extractedByte ^= random.getNextByte();
+                        // CHECK FOR PIXEL KNOT PASSWORD SENTINEL
+                        if (nBytesExtracted < 4 && (byte)extractedByte != (byte)'-') {
+                            // early exit
+//                            System.out.println(password + " bad start byte " + (byte)extractedByte + " at " + nBytesExtracted);
+                            return;
+                        }
+                        if (nBytesExtracted < 4) {
+                            System.out.println(password + " good byte " + (char) (byte) extractedByte + " at " + nBytesExtracted);
+                        }
                         fos.write((byte) extractedByte);
                         extractedByte = 0;
                         availableExtractedBits = 0;
@@ -126,6 +135,16 @@ public class Extract {
                 if (availableExtractedBits == 8) {
                     // remove pseudo random pad
                     extractedByte ^= random.getNextByte();
+                    // CHECK FOR PIXEL KNOT PASSWORD SENTINEL
+                    if (nBytesExtracted  < 4 && (byte)extractedByte != (byte)'-') {
+                        // early exit
+//                        System.out.println(password + " bad start byte " + (char)extractedByte + " at " + nBytesExtracted);
+                        return;
+                    }
+                    if (nBytesExtracted < 4) {
+                        System.out.println(password + " good byte " + (char) (byte) extractedByte + " at " + nBytesExtracted);
+                    }
+                    System.out.println(password + " good byte " + (char)(byte)extractedByte + " at " + nBytesExtracted);
                     fos.write((byte) extractedByte);
                     extractedByte = 0;
                     availableExtractedBits = 0;

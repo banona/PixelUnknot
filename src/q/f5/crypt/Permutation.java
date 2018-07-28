@@ -1,6 +1,10 @@
 package q.f5.crypt;
 
+import java.util.concurrent.atomic.AtomicReference;
+
 public class Permutation {
+
+    static AtomicReference<int[]> ic = new AtomicReference<>(null);
     int[] shuffled; // shuffled sequence
 
     // The constructor of class Permutation creates a shuffled
@@ -9,12 +13,20 @@ public class Permutation {
         int i, randomIndex, tmp;
         this.shuffled = new int[size];
 
-        // To create the shuffled sequence, we initialise an array
-        // with the integers 0 ... (size-1).
-        for (i = 0; i < size; i++) {
-            // initialise with �size� integers
-            this.shuffled[i] = i;
+        int[] cached = ic.get();
+        if (cached == null) {
+            this.shuffled = new int[size];
+            // To create the shuffled sequence, we initialise an array
+            // with the integers 0 ... (size-1).
+            for (i = 0; i < size; i++) {
+                // initialise with �size� integers
+                this.shuffled[i] = i;
+            }
+            ic.set(this.shuffled.clone());
+        } else {
+            this.shuffled = cached.clone();
         }
+
         int maxRandom = size; // set number of entries to shuffle
         for (i = 0; i < size; i++) { // shuffle entries
             randomIndex = random.getNextValue(maxRandom--);

@@ -14,7 +14,9 @@ import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.Security;
 import java.security.spec.KeySpec;
@@ -63,23 +65,38 @@ public class Main {
         public final static String PASSWORD_SENTINEL = "----* PK v 1.0 REQUIRES PASSWORD ----*";
     }
 
-    public static int extract(int[] coeff, String mPassword) throws IOException, Base64DecodingException {
+    public static int extract(int[] coeff, String mPassword) {
         Extract e = new Extract();
         OutputStream ostream = new ByteArrayOutputStream();
-        e.extract(coeff, ostream, extractF5Seed(mPassword));
+        try {
+            e.extract(coeff, ostream, mPassword);
+        } catch (IOException e1) {
+            e1.printStackTrace();
+        }
+//        e.extract(coeff, ostream, extractF5Seed(mPassword));
         String mMessage = ostream.toString();
         // System.out.println("message is " + mMessage);
 
         if (mMessage != null && mMessage.indexOf(Constants.PASSWORD_SENTINEL) == 0) {
             String secret_message = mMessage.substring(Constants.PASSWORD_SENTINEL.length());
-
+            System.out.println("!!!!!!!!!!! PARTIAL MATCH - " + mPassword);
+            System.out.println("!!!!!!!!!!! PARTIAL MATCH - " + mPassword);
+            System.out.println("!!!!!!!!!!! PARTIAL MATCH - " + mPassword);
+            System.out.println("!!!!!!!!!!! PARTIAL MATCH - " + mPassword);
+            System.exit(0);
             int idx = secret_message.indexOf("\n");
 
             String mMsg = secret_message.substring(idx + 1, secret_message.length());
             String mIv = secret_message.substring(0, idx);
 
-            byte[] message = Base64.decode(mMsg);
-            byte[] iv =  Base64.decode(mIv);
+            byte[] message = new byte[0];
+            byte[] iv = new byte[0];
+            try {
+                message = Base64.decode(mMsg);
+                iv = Base64.decode(mIv);
+            } catch (Base64DecodingException e1) {
+                e1.printStackTrace();
+            }
 
             String sm = DecryptWithPassword(extractPassword(mPassword), iv, message, extractPasswordSalt(mPassword).getBytes());
             if (sm != null) {
@@ -94,15 +111,13 @@ public class Main {
                 System.out.println("decryption error with password " + mPassword);
             }
         } else {
-            System.out.println("wrong password " + mPassword);
+            //System.out.println("bad password [" + mPassword + "] ");
         }
         return 0;
     }
 
     public static void main(String[] args) throws IOException, InterruptedException, ExecutionException {
         Security.addProvider(new BouncyCastleProvider());
-        final int numThread = 32;
-        ExecutorService executorService = Executors.newFixedThreadPool(numThread);
 
         final File f = new File(args[0]);
         final FileInputStream fis = new FileInputStream(f);
@@ -113,34 +128,18 @@ public class Main {
         System.out.println("Huffman decoding starts");
         final int[] coeff = hd.decode(); // dct values
 
-        try (BufferedReader br = new BufferedReader(new FileReader(args[1]))) {
-            String line;
-            List<Future<Integer>> results = new ArrayList<>(numThread);
-
-            while ((line = br.readLine()) != null) {
-                final String finalLine = line;
-                results.add(
-                        executorService.submit(() -> {
-                            try {
-                                return extract(coeff, finalLine);
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                            return 0;
-                        })
-                );
-
-                if (results.size() >= numThread) {
-                    for (int k = 0; k < results.size(); k++) {
-                        Future<Integer> res = results.get(k);
-                        if (res.get() == 1) {
-                            System.exit(0);
+        Path filePath = Paths.get(args[1]);
+        Files.readAllLines(filePath, StandardCharsets.ISO_8859_1)
+                .parallelStream()
+                .forEach(line -> {
+                    for (int j = 0; j<line.length() - 2; j++) {
+                        String l = line.substring(j);
+                        // System.out.println("trying " + l);
+                        int res = extract(coeff, l);
+                        if (res == 1) {
+                            System.exit(1);
                         }
                     }
-                    results.clear();
-                }
-
-            }
-        }
+                });
     }
 }
