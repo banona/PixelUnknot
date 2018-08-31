@@ -1,28 +1,3 @@
-Decryption tool
-
-gather.sh
-
-download all the jpeg from a thread
-detect pk header and copy into matches
-
-gather.sh <domain> <board> <thread-id>
-gather.sh half.org v 123
-
-detect pk header
-python detect.py Q4example.jpg
-
-build with maven to
-
-crack/generate .coeff file for image with PixelUnknot java
-
-brutef5 is c version 
-brutef5cude is nvidia gpu version
-
-other
-
-https://code.google.com/archive/p/f5-steganography/ java
-java -jar f5.jar x -p plan -o message.txt Q4example.jpg
-
 /* /////////////// DISCLAIMER/////////////////////////////////
    This software is provided by the author and
    contributors ``as is'' and any express or implied
@@ -42,3 +17,14 @@ java -jar f5.jar x -p plan -o message.txt Q4example.jpg
    of this software, even if advised of the poss-
    ibility of such damage.
 //////////////////////////////////////////////////////*/
+#ifndef THREADS_H
+#define THREADS_H
+
+enum rs_enum{ init, ramping, running, shutdown };
+
+void init_thread_system();
+
+enum rs_enum get_runstate();
+void set_runstate(enum rs_enum state);
+
+#endif

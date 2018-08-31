@@ -1,28 +1,3 @@
-Decryption tool
-
-gather.sh
-
-download all the jpeg from a thread
-detect pk header and copy into matches
-
-gather.sh <domain> <board> <thread-id>
-gather.sh half.org v 123
-
-detect pk header
-python detect.py Q4example.jpg
-
-build with maven to
-
-crack/generate .coeff file for image with PixelUnknot java
-
-brutef5 is c version 
-brutef5cude is nvidia gpu version
-
-other
-
-https://code.google.com/archive/p/f5-steganography/ java
-java -jar f5.jar x -p plan -o message.txt Q4example.jpg
-
 /* /////////////// DISCLAIMER/////////////////////////////////
    This software is provided by the author and
    contributors ``as is'' and any express or implied
@@ -42,3 +17,20 @@ java -jar f5.jar x -p plan -o message.txt Q4example.jpg
    of this software, even if advised of the poss-
    ibility of such damage.
 //////////////////////////////////////////////////////*/
+#ifndef F5CRYPT_H
+#define F5CRYPT_H
+
+struct f5_rand_state{
+	char output[20];
+	char state[20];
+	unsigned int t;
+	int last, v, zf;
+	int output_pos;
+} ;
+
+__device__ void F5gen_rand_seed(char *seed, int seed_len, f5_rand_state *st);
+__device__ int F5gen_rand_next(f5_rand_state st);
+__device__ void F5permutation(f5_rand_state *st, int *shuffled, int size);
+__device__ int  F5extract(short *coeff, int coeff_len, int* shuffled, f5_rand_state *st, int max_msg_length, char *message, int *message_len, int mode);
+
+#endif

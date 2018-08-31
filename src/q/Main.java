@@ -1,3 +1,22 @@
+/* /////////////// DISCLAIMER/////////////////////////////////
+   This software is provided by the author and
+   contributors ``as is'' and any express or implied
+   warranties, including, but not limited to, the
+   implied warranties of merchantability and
+   fitness for a particular purpose are dis-
+   claimed. In no event shall the author or con-
+   tributors be liable for any direct, indirect,
+   incidental, special, exemplary, or consequen-
+   tial damages (including, but not limited to,
+   procurement of substitute goods or services;
+   loss of use, data, or profits; or business
+   interruption) however caused and on any
+   theory of liability, whether in contract,
+   strict liability, or tort (including negligence
+   or otherwise) arising in any way out of the use
+   of this software, even if advised of the poss-
+   ibility of such damage.
+//////////////////////////////////////////////////////*/
 package q;
 
 import com.sun.org.apache.xml.internal.security.exceptions.Base64DecodingException;
@@ -13,19 +32,22 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
+<<<<<<< HEAD
 import java.nio.charset.Charset;
+=======
+>>>>>>> ea37fb0... add BruteCrackF5 and BruteCrackF5CUDA
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.Security;
 import java.security.spec.KeySpec;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicLong;
+
+import static java.lang.System.exit;
 
 public class Main {
 
@@ -65,6 +87,7 @@ public class Main {
         public final static String PASSWORD_SENTINEL = "----* PK v 1.0 REQUIRES PASSWORD ----*";
     }
 
+<<<<<<< HEAD
     public static int extract(int[] coeff, String mPassword) {
         Extract e = new Extract();
         OutputStream ostream = new ByteArrayOutputStream();
@@ -74,6 +97,20 @@ public class Main {
             e1.printStackTrace();
         }
 //        e.extract(coeff, ostream, extractF5Seed(mPassword));
+=======
+    public static int extract(int[] coeff, String mPassword, int max_len) {
+        // System.out.println("trying " + mPassword);
+        Extract e = new Extract();
+        OutputStream ostream = new ByteArrayOutputStream();
+        try {
+            // e.extract(coeff, ostream, extractF5Seed(mPassword));
+            // TEST - FOR BRUTE FORCING LAST 1/3
+            e.extract(coeff, ostream, mPassword, max_len);
+        } catch (IOException e1) {
+            e1.printStackTrace();
+        }
+
+>>>>>>> ea37fb0... add BruteCrackF5 and BruteCrackF5CUDA
         String mMessage = ostream.toString();
         // System.out.println("message is " + mMessage);
 
@@ -83,7 +120,12 @@ public class Main {
             System.out.println("!!!!!!!!!!! PARTIAL MATCH - " + mPassword);
             System.out.println("!!!!!!!!!!! PARTIAL MATCH - " + mPassword);
             System.out.println("!!!!!!!!!!! PARTIAL MATCH - " + mPassword);
+<<<<<<< HEAD
             System.exit(0);
+=======
+            // TEST - FOR BRUTE FORCING LAST 1/3
+            Runtime.getRuntime().halt(1);
+>>>>>>> ea37fb0... add BruteCrackF5 and BruteCrackF5CUDA
             int idx = secret_message.indexOf("\n");
 
             String mMsg = secret_message.substring(idx + 1, secret_message.length());
@@ -118,14 +160,80 @@ public class Main {
 
     public static void main(String[] args) throws IOException, InterruptedException, ExecutionException {
         Security.addProvider(new BouncyCastleProvider());
+<<<<<<< HEAD
 
         final File f = new File(args[0]);
+=======
+        // -----------------------
+        // useful code to extract coeff files for a directory
+        // -----------------------
+        /*
+        File[] files = new File("matches").listFiles();
+        for (File file : files) {
+            if (file.isFile() && !file.getAbsolutePath().endsWith(".coeff")) {
+                File cf = new File( file.getAbsolutePath() + ".coeff");
+                if (!cf.exists()) {
+                    System.out.println("extracting coeff for " + file.getName());
+                    final int[] coeff = loadCoeff(file);
+                    // save coeff file for CUDA crack
+                    save_coeff(file.getAbsolutePath(), coeff);
+                }
+            }
+        }
+        exit(0);
+        */
+
+        if (args.length < 2) {
+            System.out.println("Usage: PixelUnknot Q4example.jpg passwords.txt");
+        }
+
+        String path = args[0];
+        System.out.println("untie " + path);
+        final File f = new File(path);
+        final int[] coeff = loadCoeff(f);
+        // save coeff file for CUDA crack
+        save_coeff(path, coeff);
+
+        int max_msg_len = 0;
+        for (int i = 0; i < coeff.length; i++)
+        if ((i % 64 != 0) & (coeff[i] != 0))
+            max_msg_len++;
+
+        System.out.println("Max theoretical message length: " + max_msg_len);
+
+        final long startTime = System.currentTimeMillis();
+        AtomicLong lineCount = new AtomicLong(0);
+        Timer t = new Timer();
+        t.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                long estimatedTime = (System.currentTimeMillis() - startTime) / 1000L;
+                System.out.println("count: " + lineCount.get() + " elapsed: " + estimatedTime + "s = rate: " + (lineCount.get() / estimatedTime) + " pw/s");
+            }
+        }, 60000, 60000);
+
+        Path filePath = Paths.get(args[1]);
+        final int max_len = max_msg_len;
+        Files.readAllLines(filePath, StandardCharsets.ISO_8859_1)
+                .parallelStream()
+                .forEach(line -> {
+                    trySuffixes(coeff, lineCount, line, max_len);
+                    StringBuilder rev = new StringBuilder();
+                    rev.append(line);
+                    trySuffixes(coeff, lineCount, rev.reverse().toString(), max_len);
+                });
+        Runtime.getRuntime().halt(1);
+    }
+
+    private static int[] loadCoeff(File f) throws IOException {
+>>>>>>> ea37fb0... add BruteCrackF5 and BruteCrackF5CUDA
         final FileInputStream fis = new FileInputStream(f);
         byte[] carrier; // carrier data
         carrier = new byte[(int) f.length()];
         fis.read(carrier);
         final HuffmanDecode hd = new HuffmanDecode(carrier);
         System.out.println("Huffman decoding starts");
+<<<<<<< HEAD
         final int[] coeff = hd.decode(); // dct values
 
         Path filePath = Paths.get(args[1]);
@@ -141,5 +249,37 @@ public class Main {
                         }
                     }
                 });
+=======
+        return hd.decode();
+    }
+
+    private static void save_coeff(String arg, int[] coeff) throws IOException {
+        FileOutputStream fout = new FileOutputStream(arg + ".coeff");
+        for(int i = 0; i < coeff.length; i++){
+            // Output data is little endin short ints
+            short s = (short)coeff[i];
+            fout.write(s);
+            fout.write(s>>8);
+        }
+        fout.close();
+    }
+
+    private static void trySuffixes(int[] coeff, AtomicLong lineCount, String line, int max_len) {
+        // System.out.println("trying " + line);
+        int res = extract(coeff, line, max_len);
+        if (res == 1) {
+            exit(1);
+        }
+        lineCount.incrementAndGet();
+        for (int j = 1; j<line.length() - 4; j++) {
+           String l = line.substring(j);
+           // System.out.println("trying " + l);
+            res = extract(coeff, l, max_len);
+            if (res == 1) {
+                exit(1);
+            }
+            lineCount.incrementAndGet();
+        }
+>>>>>>> ea37fb0... add BruteCrackF5 and BruteCrackF5CUDA
     }
 }

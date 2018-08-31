@@ -1,28 +1,3 @@
-Decryption tool
-
-gather.sh
-
-download all the jpeg from a thread
-detect pk header and copy into matches
-
-gather.sh <domain> <board> <thread-id>
-gather.sh half.org v 123
-
-detect pk header
-python detect.py Q4example.jpg
-
-build with maven to
-
-crack/generate .coeff file for image with PixelUnknot java
-
-brutef5 is c version 
-brutef5cude is nvidia gpu version
-
-other
-
-https://code.google.com/archive/p/f5-steganography/ java
-java -jar f5.jar x -p plan -o message.txt Q4example.jpg
-
 /* /////////////// DISCLAIMER/////////////////////////////////
    This software is provided by the author and
    contributors ``as is'' and any express or implied
@@ -42,3 +17,47 @@ java -jar f5.jar x -p plan -o message.txt Q4example.jpg
    of this software, even if advised of the poss-
    ibility of such damage.
 //////////////////////////////////////////////////////*/
+#ifndef SHA1_H
+#define SHA1_H
+
+/*
+   SHA-1 in C
+   By Steve Reid <steve@edmweb.com>
+   100% Public Domain
+ */
+
+#include "stdint.h"
+
+typedef struct
+{
+    uint32_t state[5];
+    uint32_t count[2];
+    unsigned char buffer[64];
+} SHA1_CTX;
+
+void SHA1Transform(
+    uint32_t state[5],
+    const unsigned char buffer[64]
+    );
+
+void SHA1Init(
+    SHA1_CTX * context
+    );
+
+void SHA1Update(
+    SHA1_CTX * context,
+    const unsigned char *data,
+    uint32_t len
+    );
+
+void SHA1Final(
+    unsigned char digest[20],
+    SHA1_CTX * context
+    );
+
+void SHA1(
+    char *hash_out,
+    const char *str,
+    int len);
+
+#endif /* SHA1_H */
