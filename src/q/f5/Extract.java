@@ -33,11 +33,7 @@ public class Extract {
             40, 44, 53, 10, 19, 23, 32, 39, 45, 52, 54, 20, 22, 33, 38, 46, 51, 55, 60, 21, 34, 37, 47, 50, 56, 59, 61,
             35, 36, 48, 49, 57, 58, 62, 63 };
 
-<<<<<<< HEAD
-    public void extract(int[] coeff, final OutputStream fos, final String password)
-=======
     public void extract(int[] coeff, final OutputStream fos, final String password, int max_len)
->>>>>>> ea37fb0... add BruteCrackF5 and BruteCrackF5CUDA
             throws IOException {
 //        System.out.println("Permutation starts");
         final F5Random random = new F5Random(password.getBytes());
@@ -80,15 +76,12 @@ public class Extract {
         extractedFileLength &= 0x007fffff;
         availableExtractedBits = 0;
         int extractedByteOffset = 0;
-<<<<<<< HEAD
-=======
         if (extractedFileLength > max_len) {
             // early exit
             return;
         }
         // System.out.println("pass " + password + " has length " + extractedFileLength);
 
->>>>>>> ea37fb0... add BruteCrackF5 and BruteCrackF5CUDA
         if (n > 0) {
             int startOfN = i;
             int hash;
@@ -128,22 +121,13 @@ public class Extract {
                         // remove pseudo random pad
                         extractedByte ^= random.getNextByte();
                         // CHECK FOR PIXEL KNOT PASSWORD SENTINEL
-<<<<<<< HEAD
-                        if (nBytesExtracted < 4 && (byte)extractedByte != (byte)'-') {
-=======
                         if (nBytesExtracted < 2 && (byte)extractedByte != (byte)'-') {
->>>>>>> ea37fb0... add BruteCrackF5 and BruteCrackF5CUDA
                             // early exit
 //                            System.out.println(password + " bad start byte " + (byte)extractedByte + " at " + nBytesExtracted);
                             return;
                         }
-<<<<<<< HEAD
-                        if (nBytesExtracted < 4) {
-                            System.out.println(password + " good byte " + (char) (byte) extractedByte + " at " + nBytesExtracted);
-=======
                         if (nBytesExtracted > 0 && nBytesExtracted < 16) {
                             System.out.println(password + " " + (char) (byte) extractedByte + " at " + nBytesExtracted);
->>>>>>> ea37fb0... add BruteCrackF5 and BruteCrackF5CUDA
                         }
                         fos.write((byte) extractedByte);
                         extractedByte = 0;
@@ -177,17 +161,6 @@ public class Extract {
                     // remove pseudo random pad
                     extractedByte ^= random.getNextByte();
                     // CHECK FOR PIXEL KNOT PASSWORD SENTINEL
-<<<<<<< HEAD
-                    if (nBytesExtracted  < 4 && (byte)extractedByte != (byte)'-') {
-                        // early exit
-//                        System.out.println(password + " bad start byte " + (char)extractedByte + " at " + nBytesExtracted);
-                        return;
-                    }
-                    if (nBytesExtracted < 4) {
-                        System.out.println(password + " good byte " + (char) (byte) extractedByte + " at " + nBytesExtracted);
-                    }
-                    System.out.println(password + " good byte " + (char)(byte)extractedByte + " at " + nBytesExtracted);
-=======
                     if (nBytesExtracted < 2 && (byte)extractedByte != (byte)'-') {
                         // early exit
 //                            System.out.println(password + " bad start byte " + (byte)extractedByte + " at " + nBytesExtracted);
@@ -196,7 +169,6 @@ public class Extract {
                     if (nBytesExtracted > 0 && nBytesExtracted < 16) {
                         System.out.println(password + " " + (char) (byte) extractedByte + " at " + nBytesExtracted);
                     }
->>>>>>> ea37fb0... add BruteCrackF5 and BruteCrackF5CUDA
                     fos.write((byte) extractedByte);
                     extractedByte = 0;
                     availableExtractedBits = 0;

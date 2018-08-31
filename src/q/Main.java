@@ -32,10 +32,6 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
-<<<<<<< HEAD
-import java.nio.charset.Charset;
-=======
->>>>>>> ea37fb0... add BruteCrackF5 and BruteCrackF5CUDA
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -87,17 +83,6 @@ public class Main {
         public final static String PASSWORD_SENTINEL = "----* PK v 1.0 REQUIRES PASSWORD ----*";
     }
 
-<<<<<<< HEAD
-    public static int extract(int[] coeff, String mPassword) {
-        Extract e = new Extract();
-        OutputStream ostream = new ByteArrayOutputStream();
-        try {
-            e.extract(coeff, ostream, mPassword);
-        } catch (IOException e1) {
-            e1.printStackTrace();
-        }
-//        e.extract(coeff, ostream, extractF5Seed(mPassword));
-=======
     public static int extract(int[] coeff, String mPassword, int max_len) {
         // System.out.println("trying " + mPassword);
         Extract e = new Extract();
@@ -110,7 +95,6 @@ public class Main {
             e1.printStackTrace();
         }
 
->>>>>>> ea37fb0... add BruteCrackF5 and BruteCrackF5CUDA
         String mMessage = ostream.toString();
         // System.out.println("message is " + mMessage);
 
@@ -120,12 +104,8 @@ public class Main {
             System.out.println("!!!!!!!!!!! PARTIAL MATCH - " + mPassword);
             System.out.println("!!!!!!!!!!! PARTIAL MATCH - " + mPassword);
             System.out.println("!!!!!!!!!!! PARTIAL MATCH - " + mPassword);
-<<<<<<< HEAD
-            System.exit(0);
-=======
             // TEST - FOR BRUTE FORCING LAST 1/3
             Runtime.getRuntime().halt(1);
->>>>>>> ea37fb0... add BruteCrackF5 and BruteCrackF5CUDA
             int idx = secret_message.indexOf("\n");
 
             String mMsg = secret_message.substring(idx + 1, secret_message.length());
@@ -160,10 +140,6 @@ public class Main {
 
     public static void main(String[] args) throws IOException, InterruptedException, ExecutionException {
         Security.addProvider(new BouncyCastleProvider());
-<<<<<<< HEAD
-
-        final File f = new File(args[0]);
-=======
         // -----------------------
         // useful code to extract coeff files for a directory
         // -----------------------
@@ -226,30 +202,12 @@ public class Main {
     }
 
     private static int[] loadCoeff(File f) throws IOException {
->>>>>>> ea37fb0... add BruteCrackF5 and BruteCrackF5CUDA
         final FileInputStream fis = new FileInputStream(f);
         byte[] carrier; // carrier data
         carrier = new byte[(int) f.length()];
         fis.read(carrier);
         final HuffmanDecode hd = new HuffmanDecode(carrier);
         System.out.println("Huffman decoding starts");
-<<<<<<< HEAD
-        final int[] coeff = hd.decode(); // dct values
-
-        Path filePath = Paths.get(args[1]);
-        Files.readAllLines(filePath, StandardCharsets.ISO_8859_1)
-                .parallelStream()
-                .forEach(line -> {
-                    for (int j = 0; j<line.length() - 2; j++) {
-                        String l = line.substring(j);
-                        // System.out.println("trying " + l);
-                        int res = extract(coeff, l);
-                        if (res == 1) {
-                            System.exit(1);
-                        }
-                    }
-                });
-=======
         return hd.decode();
     }
 
@@ -280,6 +238,5 @@ public class Main {
             }
             lineCount.incrementAndGet();
         }
->>>>>>> ea37fb0... add BruteCrackF5 and BruteCrackF5CUDA
     }
 }
